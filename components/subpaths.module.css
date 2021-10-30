@@ -1,0 +1,22 @@
+.list {
+    display: block;
+    width: 100%;
+    justify-content: center;
+    padding-inline-start: 0;
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+.entry {
+    display: block;
+    width: calc(100% - 1ex);
+    padding-top: 1ex;
+    padding-bottom: 1ex;
+    padding-left: 1em;
+    padding-right: 1em;
+    border: 1px solid beige;
+    margin-bottom: .5ex;
+    margin-top: .5ex;
+    margin-left: .5ex;
+    margin-right: .5ex;
+}

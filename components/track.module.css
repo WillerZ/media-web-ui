@@ -1,0 +1,13 @@
+.year, .track, .disc {
+  display: inline-block;
+  margin-right: 1ex;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.year, .track {
+  filter: brightness(80%);
+}
+
+.disc {
+  filter: brightness(70%);
+}
