@@ -59,7 +59,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
     const mediaPath = media ? path.join(MediaDir, media.join(path.sep)) : MediaDir;
     try {
         const contents = (await fs.readdir(mediaPath, { withFileTypes: true }))
-            .filter(dent => dent.isDirectory() || MediaExtensions.includes(path.extname(dent.name)));
+            .filter(dent => dent.name !== 'lost+found' && (dent.isDirectory() || MediaExtensions.includes(path.extname(dent.name))));
         const subpaths = contents.map(dent => dent.isDirectory() ? dent.name : dent.name + '.html');
         return { props: { path: media ? media : [], subpaths } };
     } catch (e) {
@@ -77,7 +77,10 @@ async function spiderPaths(spiderpath: string): Promise<string[]> {
     const contents = await fs.readdir(spiderpath, { withFileTypes: true });
     const result = [];
     for (const dent of contents) {
-        const fullPath = path.join(spiderpath, dent.name.replace('\!', '!'));
+        if (dent.name === 'lost+found') {
+            continue;
+        }
+        const fullPath = path.join(spiderpath, dent.name);
         if (dent.isDirectory()) {
             result.push(fullPath);
             result.push(...await spiderPaths(fullPath));

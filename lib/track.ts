@@ -67,5 +67,14 @@ export function trackFromFileName(pageName: string): track {
             };
         }
     }
+    {
+        const matches = baseName.match(/^(\d\d\d\d)\.(.*)/);
+        if (matches) {
+            return {
+                year: matches[1],
+                name: matches[2]
+            };
+        }
+    }
     return { name: baseName };
 }
