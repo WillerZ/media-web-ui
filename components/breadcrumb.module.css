@@ -1,0 +1,7 @@
+.container {
+    display: inline;
+  }
+
+.container:before {
+  content:" > ";
+}
