@@ -1,4 +1,5 @@
 import path from 'path';
+import { MediaExtensions } from './constants';
 
 export type track = {
     disc?: string;
@@ -10,7 +11,7 @@ export type track = {
 export function trackFromFileName(pageName: string): track {
     const fileName = path.basename(pageName, '.html');
     const fileExtension = path.extname(fileName);
-    const baseName = fileExtension ? path.basename(fileName, fileExtension) : fileName;
+    const baseName = (fileExtension && MediaExtensions.includes(fileExtension)) ? path.basename(fileName, fileExtension) : fileName;
     {
         const matches = baseName.match(/^(\d)\.(\d\d) - (.*)/);
         if (matches) {

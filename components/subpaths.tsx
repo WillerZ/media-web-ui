@@ -13,7 +13,7 @@ export default function subpaths({ path, subpaths }: subpathsProps) {
         <div className={styles.list}>
             {subpaths.map(
                 p => (
-                    <Link key={p} href={[...path, p].join('/')}>
+                    <Link key={p} href={[...path, p].map(encodeURIComponent).join('/')}>
                         <a>
                             <div className={styles.entry}>
                                 <Track track={trackFromFileName(p)} />

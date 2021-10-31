@@ -4,7 +4,7 @@ import LinkTrails from "../components/linktrails";
 import Subpaths from "../components/subpaths";
 import * as fs from 'fs/promises';
 import path from 'path';
-import { MediaDir, MediaExtensions, AudioExtensions } from '../lib/constants';
+import { MediaDir, MediaExtensions, AudioExtensions, SkipFolders } from '../lib/constants';
 import assert from "assert";
 
 type MediaProps = {
@@ -35,7 +35,7 @@ const Media: NextPage<MediaProps> = ({ path, subpaths, MediaElement, mediaProps 
                 <Head>
                     <title>{titleText}</title>
                 </Head>
-                <MediaElement controls autoPlay src={['', ...path].join('/')} {...mediaProps} />
+                <MediaElement controls autoPlay src={['', ...path].map(encodeURIComponent).join('/')} {...mediaProps} />
                 <h1>
                     <LinkTrails path={path} />
                 </h1>
@@ -47,19 +47,19 @@ const Media: NextPage<MediaProps> = ({ path, subpaths, MediaElement, mediaProps 
 export default Media;
 
 type MediaParams = {
-    media?: string[]
+    media: string[]
 };
 
 export const getStaticProps: GetStaticProps = async (context) => {
     const { params } = context;
     const { media } = params as MediaParams;
     if (Array.isArray(media) && media.length > 0) {
-        media[media.length - 1] = path.basename(media[media.length - 1], '.html');
+        media[media.length - 1] = media[media.length - 1].replace(/\.html$/, '');
     }
     const mediaPath = media ? path.join(MediaDir, media.join(path.sep)) : MediaDir;
     try {
         const contents = (await fs.readdir(mediaPath, { withFileTypes: true }))
-            .filter(dent => dent.name !== 'lost+found' && (dent.isDirectory() || MediaExtensions.includes(path.extname(dent.name))));
+            .filter(dent => !SkipFolders.includes(dent.name) && (dent.isDirectory() || MediaExtensions.includes(path.extname(dent.name))));
         const subpaths = contents.map(dent => dent.isDirectory() ? dent.name : dent.name + '.html');
         return { props: { path: media ? media : [], subpaths } };
     } catch (e) {
@@ -69,35 +69,14 @@ export const getStaticProps: GetStaticProps = async (context) => {
         }
         assert(!!media);
         const MediaElement = AudioExtensions.includes(path.extname(media[media.length - 1])) ? 'audio' : 'video';
-        return { props: { path: media, MediaElement } };
+        return { props: { path: media, MediaElement }, revalidate: 120 };
     }
-};
-
-async function spiderPaths(spiderpath: string): Promise<string[]> {
-    const contents = await fs.readdir(spiderpath, { withFileTypes: true });
-    const result = [];
-    for (const dent of contents) {
-        if (dent.name === 'lost+found') {
-            continue;
-        }
-        const fullPath = path.join(spiderpath, dent.name);
-        if (dent.isDirectory()) {
-            result.push(fullPath);
-            result.push(...await spiderPaths(fullPath));
-        } else {
-            result.push(fullPath + '.html');
-        }
-    }
-    return result;
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-    const allPaths = [...await spiderPaths(MediaDir)];
-    const paths = [{ params: { media: [] } }, ...allPaths.map(fullPath => {
-        return { params: { media: path.relative(MediaDir, fullPath).split(path.sep) } };
-    })];
+    const paths = [{ params: { media: [] } }];
     return {
         paths,
-        fallback: false
+        fallback: 'blocking'
     };
 };

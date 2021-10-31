@@ -13,7 +13,7 @@ export default function linkTrails({ path }: linkTrailsProps) {
         for (var index = 0; index < path.length; ++index) {
             elements.push(
                 <Breadcrumb key={index}>
-                    <Link href={['', ...path.slice(0, index + 1)].join('/')}>
+                    <Link href={['', ...path.slice(0, index + 1)].map(encodeURIComponent).join('/')}>
                         <a>
                             <Track track={trackFromFileName(path[index])} />
                         </a>
