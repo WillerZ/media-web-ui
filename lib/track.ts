@@ -79,3 +79,38 @@ export function trackFromFileName(pageName: string): track {
     }
     return { name: baseName };
 }
+
+export function trackCompare(left: track, right: track) {
+    if (left.year !== undefined && right.year !== undefined && left.year !== right.year) {
+        return Number(left.year) - Number(right.year);
+    }
+    if (left.year === undefined && right.year !== undefined) {
+        return -1;
+    }
+    if (left.year !== undefined && right.year === undefined) {
+        return 1;
+    }
+    if (left.disc !== undefined && right.disc !== undefined && left.disc !== right.disc) {
+        return Number(left.disc) - Number(right.disc);
+    }
+    if (left.disc === undefined && right.disc !== undefined) {
+        return -1;
+    }
+    if (left.disc !== undefined && right.disc === undefined) {
+        return 1;
+    }
+    if (left.track !== undefined && right.track !== undefined && left.track !== right.track) {
+        return Number(left.track) - Number(right.track);
+    }
+    if (left.track === undefined && right.track !== undefined) {
+        return -1;
+    }
+    if (left.track !== undefined && right.track === undefined) {
+        return 1;
+    }
+    return left.name.localeCompare(right.name);
+}
+
+export function trackStringCompare(left: string, right: string) {
+    return trackCompare(trackFromFileName(left), trackFromFileName(right));
+}

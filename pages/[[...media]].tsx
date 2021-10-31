@@ -5,6 +5,7 @@ import Subpaths from "../components/subpaths";
 import * as fs from 'fs/promises';
 import path from 'path';
 import { MediaDir, MediaExtensions, AudioExtensions, SkipFolders } from '../lib/constants';
+import { trackStringCompare } from "../lib/track";
 import assert from "assert";
 
 type MediaProps = {
@@ -60,7 +61,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
     try {
         const contents = (await fs.readdir(mediaPath, { withFileTypes: true }))
             .filter(dent => !SkipFolders.includes(dent.name) && (dent.isDirectory() || MediaExtensions.includes(path.extname(dent.name))));
-        const subpaths = contents.map(dent => dent.isDirectory() ? dent.name : dent.name + '.html');
+        const subpaths = contents.map(dent => dent.isDirectory() ? dent.name : dent.name + '.html').sort(trackStringCompare);
         return { props: { path: media ? media : [], subpaths } };
     } catch (e) {
         const err = e as { code: string };
