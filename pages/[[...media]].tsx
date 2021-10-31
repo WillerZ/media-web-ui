@@ -1,5 +1,6 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Head from 'next/head';
+import Link from 'next/link';
 import LinkTrails from "../components/linktrails";
 import Subpaths from "../components/subpaths";
 import * as fs from 'fs/promises';
@@ -33,15 +34,25 @@ const Media: NextPage<MediaProps> = ({ path, subpaths, MediaElement, mediaProps,
             </>
         );
     } else {
-        let chainMedia = true;
         assert(MediaElement !== undefined);
-        const onEnded = nextPage ? () => { if (chainMedia) { router.push(nextPage); } } : undefined;
+        const onEnded = nextPage ? () => { console.log('Pushing', nextPage); router.push(nextPage); } : undefined;
+        const nextLink = nextPage ? (
+            <Link href={nextPage}>
+                <a>
+                    <span className="material-icons">
+                        skip_next
+                    </span>
+                </a>
+            </Link>
+        ) : null;
         return (
             <>
                 <Head>
                     <title>{titleText}</title>
+                    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
                 </Head>
                 <MediaElement controls autoPlay onEnded={onEnded} src={['', ...path].map(encodeURIComponent).join('/')} {...mediaProps} />
+                {nextLink}
                 <h1>
                     <LinkTrails path={path} />
                 </h1>
@@ -82,13 +93,13 @@ export const getStaticProps: GetStaticProps = async (context) => {
                 .map(dent => dent.name)
                 .sort(trackStringCompare);
             const thisPageIndex = contents.indexOf(media[media.length - 1]);
-            if (thisPageIndex > 0 && thisPageIndex < media.length - 1) {
-                nextPage = ['', ...media.slice(0, media.length -1), contents[thisPageIndex + 1] + '.html'].join('/');
+            if (thisPageIndex >= 0 && thisPageIndex < contents.length - 1) {
+                nextPage = ['', ...media.slice(0, media.length - 1), contents[thisPageIndex + 1] + '.html'].map(encodeURIComponent).join('/');
             }
         } catch (e2) {
             // Disregard, chaining is not critical
         }
-        return { props: { path: media, MediaElement, nextPage: nextPage || null }, revalidate: 120 };
+        return { props: { path: media, MediaElement, nextPage: nextPage ? nextPage : null }, revalidate: 120 };
     }
 };
 
