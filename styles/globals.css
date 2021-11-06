@@ -6,6 +6,15 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
   background-color: black;
   color: beige;
+  scrollbar-color: #000 #555;
+}
+
+::-webkit-scrollbar {
+  background: #555;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #000;
 }
 
 video {

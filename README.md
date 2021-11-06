@@ -60,7 +60,7 @@ location / {
     proxy_pass http://127.0.0.1:3000/;
 }
 
-location ~ \.(mp3|flac|m4a|mkv|mp4|m4v)$ {
+location ~ \.(mp3|flac|m4a|mkv|mp4|m4v|webm)$ {
     try_files $uri =404;
 }
 ```
