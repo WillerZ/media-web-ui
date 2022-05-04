@@ -1,4 +1,4 @@
-export const MediaDir = '/Media';
+export const MediaDir = '/Media/Streamable';
 
 export const VideoExtensions = ['.mkv', '.mp4', '.m4v', '.webm'];
 export const AudioExtensions = ['.m4a', '.mp3', '.flac'];

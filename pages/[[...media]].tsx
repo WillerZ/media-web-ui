@@ -4,6 +4,7 @@ import Link from 'next/link';
 import LinkTrails from "../components/linktrails";
 import Subpaths from "../components/subpaths";
 import * as fs from 'fs/promises';
+import { Dirent } from 'fs';
 import path from 'path';
 import { MediaDir, MediaExtensions, AudioExtensions, SkipFolders } from '../lib/constants';
 import { trackStringCompare } from "../lib/track";
@@ -67,6 +68,25 @@ type MediaParams = {
     media: string[]
 };
 
+const isDirectory = async (base: string, dent: Dirent) => {
+    if (dent.isSymbolicLink()) {
+        const pointee = await fs.realpath(path.join(base, dent.name));
+        const stats = await fs.stat(pointee);
+        return stats.isDirectory();
+    }
+    return dent.isDirectory();
+};
+
+async function asyncMap<T, U>(array: Array<T>, predicate: (val: T) => Promise<U>): Promise<Array<U>> {
+    return await Promise.all(array.map(predicate));
+}
+
+async function asyncFilter<T>(array: Array<T>, predicate: (val: T) => Promise<Boolean>): Promise<Array<T>> {
+    const results = await asyncMap(array, predicate);
+
+    return array.filter((_, index) => results[index]);
+}
+
 export const getStaticProps: GetStaticProps = async (context) => {
     const { params } = context;
     const { media } = params as MediaParams;
@@ -75,9 +95,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
     }
     const mediaPath = media ? path.join(MediaDir, media.join(path.sep)) : MediaDir;
     try {
-        const contents = (await fs.readdir(mediaPath, { withFileTypes: true }))
-            .filter(dent => !SkipFolders.includes(dent.name) && (dent.isDirectory() || MediaExtensions.includes(path.extname(dent.name))));
-        const subpaths = contents.map(dent => dent.isDirectory() ? dent.name : dent.name + '.html').sort(trackStringCompare);
+        const contents = await asyncFilter(await fs.readdir(mediaPath, { withFileTypes: true }), async dent => !SkipFolders.includes(dent.name) && (await isDirectory(mediaPath, dent) || MediaExtensions.includes(path.extname(dent.name))));
+        const subpaths = (await asyncMap(contents, async dent => (await isDirectory(mediaPath, dent)) ? dent.name : dent.name + '.html')).sort(trackStringCompare);
         return { props: { path: media ? media : [], subpaths } };
     } catch (e) {
         const err = e as { code: string };
@@ -88,8 +107,8 @@ export const getStaticProps: GetStaticProps = async (context) => {
         const MediaElement = AudioExtensions.includes(path.extname(media[media.length - 1])) ? 'audio' : 'video';
         let nextPage;
         try {
-            const contents = (await fs.readdir(path.dirname(mediaPath), { withFileTypes: true }))
-                .filter(dent => !dent.isDirectory() && MediaExtensions.includes(path.extname(dent.name)))
+            const contents = (await asyncFilter(await fs.readdir(path.dirname(mediaPath), { withFileTypes: true }),
+                async dent => !isDirectory(mediaPath, dent) && MediaExtensions.includes(path.extname(dent.name))))
                 .map(dent => dent.name)
                 .sort(trackStringCompare);
             const thisPageIndex = contents.indexOf(media[media.length - 1]);
