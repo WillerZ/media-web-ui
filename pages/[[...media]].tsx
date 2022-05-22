@@ -1,4 +1,4 @@
-import { GetStaticPaths, GetStaticProps, NextPage } from "next";
+import { GetServerSideProps, NextPage } from "next";
 import Head from 'next/head';
 import Link from 'next/link';
 import LinkTrails from "../components/linktrails";
@@ -87,7 +87,7 @@ async function asyncFilter<T>(array: Array<T>, predicate: (val: T) => Promise<Bo
     return array.filter((_, index) => results[index]);
 }
 
-export const getStaticProps: GetStaticProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
     const { params } = context;
     const { media } = params as MediaParams;
     if (Array.isArray(media) && media.length > 0) {
@@ -118,14 +118,6 @@ export const getStaticProps: GetStaticProps = async (context) => {
         } catch (e2) {
             // Disregard, chaining is not critical
         }
-        return { props: { path: media, MediaElement, nextPage: nextPage ? nextPage : null }, revalidate: 120 };
+        return { props: { path: media, MediaElement, nextPage: nextPage ? nextPage : null } };
     }
-};
-
-export const getStaticPaths: GetStaticPaths = async () => {
-    const paths = [{ params: { media: [] } }];
-    return {
-        paths,
-        fallback: 'blocking'
-    };
 };
