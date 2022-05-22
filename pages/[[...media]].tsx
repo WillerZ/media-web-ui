@@ -10,6 +10,7 @@ import { MediaDir, MediaExtensions, AudioExtensions, SkipFolders } from '../lib/
 import { trackStringCompare } from "../lib/track";
 import assert from "assert";
 import { useRouter } from "next/dist/client/router";
+import { Console, log } from "console";
 
 type MediaProps = {
     path: string[],
@@ -108,7 +109,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         let nextPage;
         try {
             const contents = (await asyncFilter(await fs.readdir(path.dirname(mediaPath), { withFileTypes: true }),
-                async dent => !isDirectory(mediaPath, dent) && MediaExtensions.includes(path.extname(dent.name))))
+                async dent => !(await isDirectory(mediaPath, dent)) && MediaExtensions.includes(path.extname(dent.name))))
                 .map(dent => dent.name)
                 .sort(trackStringCompare);
             const thisPageIndex = contents.indexOf(media[media.length - 1]);
@@ -116,6 +117,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 nextPage = ['', ...media.slice(0, media.length - 1), contents[thisPageIndex + 1] + '.html'].map(encodeURIComponent).join('/');
             }
         } catch (e2) {
+            log(e2);
             // Disregard, chaining is not critical
         }
         return { props: { path: media, MediaElement, nextPage: nextPage ? nextPage : null } };
